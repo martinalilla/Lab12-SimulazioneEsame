@@ -5,6 +5,8 @@
 package it.polito.tdp.crimes;
 
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.model.Model;
@@ -26,13 +28,13 @@ public class CrimesController {
     private URL location;
 
     @FXML // fx:id="boxAnno"
-    private ComboBox<?> boxAnno; // Value injected by FXMLLoader
+    private ComboBox<Integer> boxAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxMese"
-    private ComboBox<?> boxMese; // Value injected by FXMLLoader
+    private ComboBox<Integer> boxMese; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxGiorno"
-    private ComboBox<?> boxGiorno; // Value injected by FXMLLoader
+    private ComboBox<Integer> boxGiorno; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnCreaReteCittadina"
     private Button btnCreaReteCittadina; // Value injected by FXMLLoader
@@ -48,11 +50,38 @@ public class CrimesController {
 
     @FXML
     void doCreaReteCittadina(ActionEvent event) {
+    	model.creaGrafo(boxAnno.getValue());
+    	txtResult.appendText(model.getGrafo().toString());
+    	txtResult.appendText(model.visualizzaAdiacenti());
+    	
     	
     }
 
     @FXML
     void doSimula(ActionEvent event) {
+    	int mese=boxMese.getValue();
+    	int giorno=boxGiorno.getValue();
+    	int agenti=Integer.parseInt(txtN.getText());
+    	boolean corretto=true;
+    
+    	if((boxMese.getValue()==11 || boxMese.getValue()==4 || boxMese.getValue()==6 || boxMese.getValue()==9) && boxGiorno.getValue()==31) {
+    		txtResult.appendText("\nIl mese selezionato non ha il 31esimo giorno!");
+    		corretto=false;
+    	}
+    	if(boxMese.getValue()==2 && (boxGiorno.getValue()==29 || boxGiorno.getValue()==30 || boxGiorno.getValue()==31)){
+    		txtResult.appendText("\nIl mese di febbraio si ferma a 28 giorni!");
+    		corretto=false;
+    	}
+    	if(agenti<1 || agenti>10) {
+    		txtResult.appendText("\nPuoi selezionare un numero di agenti compreso tra 1 e 10.");
+    		corretto=false;
+    	}
+    	if(corretto==true) {
+    		int malgestiti=model.simula(agenti, boxAnno.getValue(), mese, giorno);
+    		txtResult.appendText("\nSimulazione Terminata. Eventi malgestiti "+malgestiti);
+    	}
+    	
+    	
 
     }
 
@@ -70,5 +99,16 @@ public class CrimesController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	boxAnno.getItems().addAll(model.caricaDate());
+    	List<Integer> mesi=new LinkedList<Integer>();
+    	List<Integer> giorni = new LinkedList<Integer>();
+    	for(int i=1; i<=12; i++) {
+    		mesi.add(i);
+    	}
+    	for(int i=1; i<=31; i++) {
+    		giorni.add(i);
+    	}
+    	boxMese.getItems().addAll(mesi);
+    	boxGiorno.getItems().addAll(giorni);
     }
 }
